@@ -22,6 +22,10 @@ The modern path includes:
 See [the modern setup guide](docs/setup/modern.md). Recorded migration evidence
 is under `results/modernization`.
 
+The first external articulated-object integration uses the Xbox One S
+20-DOF MJCF and the separately licensed, owner-approved Blender visual asset.
+See [the Xbox integration notes](docs/muble/xbox_gamepad.md).
+
 ## Export to robotsim
 
 `robotsim_export.py` writes MuBlE scenes into the neutral handoff format read by

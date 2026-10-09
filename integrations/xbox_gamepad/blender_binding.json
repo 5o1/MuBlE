@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "asset": "Xbox One S",
+  "meters_per_native_unit": 0.0560472180107161,
+  "source_to_simulation_rotation": "positive_90_degrees_about_x",
+  "parts": {
+    "00_A_Button_VISUAL_UNCALIBRATED": {"blender_object": "A Button_XBox Gamepad by Batony Robson_0", "body": "a"},
+    "01_B_Button_VISUAL_UNCALIBRATED": {"blender_object": "B Button_XBox Gamepad by Batony Robson_0", "body": "b"},
+    "02_Bumper_L_VISUAL_UNCALIBRATED": {"blender_object": "Bumper_L_XBox Gamepad by Batony Robson_0", "body": "left_shoulder"},
+    "03_Bumper_R_VISUAL_UNCALIBRATED": {"blender_object": "Bumper_R_XBox Gamepad by Batony Robson_0", "body": "right_shoulder"},
+    "04_Connect_Button_VISUAL_UNCALIBRATED": {"blender_object": "Connect Button_XBox Gamepad by Batony Robson_0", "body": "pair"},
+    "05_Controller_Body_VISUAL_UNCALIBRATED": {"blender_object": "Controller Body_XBox Gamepad by Batony Robson_0", "body": "controller_body"},
+    "06_D-Pad_VISUAL_UNCALIBRATED": {"blender_object": "D-Pad_XBox Gamepad by Batony Robson_0", "body": "dpad"},
+    "07_Menu_L_VISUAL_UNCALIBRATED": {"blender_object": "Menu_L_XBox Gamepad by Batony Robson_0", "body": "view"},
+    "08_Menu_R_VISUAL_UNCALIBRATED": {"blender_object": "Menu_R_XBox Gamepad by Batony Robson_0", "body": "menu"},
+    "09_Stick_L_VISUAL_UNCALIBRATED": {"blender_object": "Stick_L_XBox Gamepad by Batony Robson_0", "body": "left_stick"},
+    "10_Stick_R_VISUAL_UNCALIBRATED": {"blender_object": "Stick_R_XBox Gamepad by Batony Robson_0", "body": "right_stick"},
+    "11_Trigger_L_VISUAL_UNCALIBRATED": {"blender_object": "Trigger_L_XBox Gamepad by Batony Robson_0", "body": "left_trigger"},
+    "12_Trigger_R_VISUAL_UNCALIBRATED": {"blender_object": "Trigger_R_XBox Gamepad by Batony Robson_0", "body": "right_trigger"},
+    "13_X_Button_VISUAL_UNCALIBRATED": {"blender_object": "X Button_XBox Gamepad by Batony Robson_0", "body": "x"},
+    "14_XboxButton_VISUAL_UNCALIBRATED": {"blender_object": "XboxButton_XBox Gamepad by Batony Robson_0", "body": "guide"},
+    "15_Y_Button_VISUAL_UNCALIBRATED": {"blender_object": "Y Button_XBox Gamepad by Batony Robson_0", "body": "y"}
+  }
+}
