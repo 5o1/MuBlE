@@ -5,7 +5,10 @@ import numpy as np
 
 from PIL import Image
 
-from robosuite import load_controller_config
+from robosuite.controllers.composite.composite_controller_factory import (
+    refactor_composite_controller_config,
+)
+from robosuite.controllers.parts.controller_factory import load_part_controller_config
 import robosuite.utils.transform_utils as T
 
 from model import INSTRUCTION_MODELS, VISUAL_RECOGNITION_MODELS
@@ -523,7 +526,17 @@ class InferenceTool:
         assert self.scene_gt is not None, "Load GT scene to initialise simulation"
         controller_cfg_path = self.environment_params.pop('controller_config_path', None)
         if controller_cfg_path is not None:
-            controller_cfg = load_controller_config(controller_cfg_path)
+            part_controller_cfg = load_part_controller_config(
+                custom_fpath=controller_cfg_path
+            )
+            robot_type = self.environment_params.get("robots", "Panda")
+            if not isinstance(robot_type, str):
+                robot_type = robot_type[0]
+            controller_cfg = refactor_composite_controller_config(
+                part_controller_cfg,
+                robot_type=robot_type,
+                arms=["right"],
+            )
         else:
             controller_cfg = None
         self.environment_params['controller_configs'] = controller_cfg

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "blender": "4.5.9 LTS",
+  "source": "/data/lyy/gamepad-vla-CfMemx/muble-review/base_scene_panda.blend",
+  "output": "/data/lyy/gamepad-vla-CfMemx/muble-review/modern_cycles.png",
+  "engine": "CYCLES",
+  "camera": "cam1",
+  "resolution": [
+    1280,
+    720
+  ],
+  "samples": 16,
+  "gpu_requested": true,
+  "render_seconds": 6.513498260639608,
+  "required_scene_objects": [
+    "Desk",
+    "Ground",
+    "Lamp_Key",
+    "Lamp_Fill",
+    "Lamp_Back"
+  ]
+}

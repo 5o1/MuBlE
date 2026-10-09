@@ -1,0 +1,13 @@
+# Runtime verified on gpu_node. Blender is an external executable and is not a wheel.
+mujoco>=3.15,<3.16
+numpy==1.26.4
+robosuite==1.5.2
+scipy==1.17.1
+numba==0.68.0
+mink==0.0.5
+qpsolvers[quadprog]==4.13.0
+opencv-python==4.10.0.84
+Pillow>=12,<13
+pynput>=1.8,<2
+termcolor>=3,<4
+tqdm>=4.70,<5

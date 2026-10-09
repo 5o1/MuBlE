@@ -46,14 +46,14 @@ def main(args):
     if not INSIDE_BLENDER:
         environment_params = {
             "robots":'Panda',
-            "gripper_types":'Robotiq85GripperContinuous',
+            "gripper_types":'Robotiq85Gripper',
             "has_offscreen_renderer": False,
             "ignore_done": True,
             "use_camera_obs": False,
             "use_object_obs": True,
             "control_freq": 20,
             "render_collision_mesh": True,
-            "renderer":'mujoco',
+            "renderer":'mjviewer',
             "renderer_config":None,
             "bounding_boxes_from_scene":True,
             "debug":True,
@@ -67,14 +67,14 @@ def main(args):
     else:
         environment_params = {
             "robots":'Panda',
-            "gripper_types":'Robotiq85GripperContinuous',
+            "gripper_types":'Robotiq85Gripper',
             "has_offscreen_renderer": False,
             "ignore_done": True,
             "use_camera_obs": False,
             "use_object_obs": True,
             "control_freq": 20,
             "render_collision_mesh": True,
-            "renderer":'mujoco',
+            "renderer":'mjviewer',
             "renderer_config":None,
             "bounding_boxes_from_scene":True,
             "return_bboxes":True,

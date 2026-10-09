@@ -1,12 +1,10 @@
 import bpy
 import os
-import cv2
 import json
 import random
 import tempfile
 import numpy as np
 from scene_generation import utils
-import pycocotools.mask as mask_utils
 
 
 class BlenderRenderer:
@@ -21,8 +19,11 @@ class BlenderRenderer:
         render_args.resolution_x = config['width']
         render_args.resolution_y = config['height']
         render_args.resolution_percentage = 100
-        render_args.tile_x = config['render_tile_size']
-        render_args.tile_y = config['render_tile_size']
+        # Blender 4.x removed the legacy per-render tile size properties.
+        if hasattr(render_args, 'tile_x'):
+            render_args.tile_x = config['render_tile_size']
+        if hasattr(render_args, 'tile_y'):
+            render_args.tile_y = config['render_tile_size']
         if config['use_gpu']:
             cycles_prefs = bpy.context.preferences.addons['cycles'].preferences
             if config['use_optix']:
@@ -31,7 +32,11 @@ class BlenderRenderer:
                 cycles_prefs.compute_device_type = 'CUDA'
             bpy.context.preferences.addons["cycles"].preferences.get_devices()
 
-        if not (config['use_gpu'] and config['use_optix']):
+        if (
+            not (config['use_gpu'] and config['use_optix'])
+            and hasattr(bpy.data.worlds['World'], 'cycles')
+            and hasattr(bpy.data.worlds['World'].cycles, 'sample_as_light')
+        ):
             bpy.data.worlds['World'].cycles.sample_as_light = True
 
         # Some CYCLES-specific stuff
@@ -142,12 +147,15 @@ class BlenderRenderer:
 
     def render(self, filename, segmentation=False):
         bpy.context.scene.render.filepath = filename
-        while True:
+        last_error = None
+        for _ in range(3):
             try:
                 bpy.ops.render.render(write_still=True)
-                break
-            except Exception as e:
-                print(e)
+                return
+            except Exception as error:
+                last_error = error
+                print(error)
+        raise RuntimeError(f"Blender render failed after 3 attempts: {last_error}")
 
     def get_segmentation_masks(self):
         # Render shadeless and return list of colours
@@ -305,6 +313,9 @@ class BlenderRenderer:
         return object_colors
 
     def assign_masks(self, colors, image_path):
+        import cv2
+        import pycocotools.mask as mask_utils
+
         masks = {}
         obj_masks = []
         img = cv2.imread(image_path)

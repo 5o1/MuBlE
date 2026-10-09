@@ -4,6 +4,24 @@
 
 To use the framework, run demo scripts, please follow the [documentation](https://michaal94.github.io/MuBlE)
 
+## Modern runtime
+
+The `modernize-py312-mujoco315-blender45` line migrates the executable path to
+Python 3.12, MuJoCo 3.15, robosuite 1.5.2 and Blender 4.5 LTS. The original
+Python 3.7 / Blender 2.83 / `mujoco_py` instructions remain as a historical
+environment.
+
+The modern path includes:
+
+- an official-MuJoCo name-addressed runtime in `muble`;
+- a pinned robosuite source patch for two MuJoCo 3.15 API changes;
+- a robosuite 1.5 `ManipulationEnv`-based `TabletopEnv`;
+- Blender 4.5 EEVEE and Cycles scene entry points;
+- explicit environment and 100-step tabletop smoke tests.
+
+See [the modern setup guide](docs/setup/modern.md). Recorded migration evidence
+is under `results/modernization`.
+
 ## Export to robotsim
 
 `robotsim_export.py` writes MuBlE scenes into the neutral handoff format read by

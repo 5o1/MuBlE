@@ -1,0 +1,43 @@
+diff --git a/robosuite/controllers/parts/controller.py b/robosuite/controllers/parts/controller.py
+index 2b3b4f5..616b189 100644
+--- a/robosuite/controllers/parts/controller.py
++++ b/robosuite/controllers/parts/controller.py
+@@ -226,3 +226,3 @@ class Controller(object, metaclass=abc.ABCMeta):
+             mass_matrix = np.ndarray(shape=(self.sim.model.nv, self.sim.model.nv), dtype=np.float64, order="C")
+-            mujoco.mj_fullM(self.sim.model._model, mass_matrix, self.sim.data.qM)
++            mujoco.mj_fullM(self.sim.model._model, self.sim.data._data, mass_matrix)
+             mass_matrix = np.reshape(mass_matrix, (len(self.sim.data.qvel), len(self.sim.data.qvel)))
+diff --git a/robosuite/utils/binding_utils.py b/robosuite/utils/binding_utils.py
+index e69aced..f9ca8d9 100644
+--- a/robosuite/utils/binding_utils.py
++++ b/robosuite/utils/binding_utils.py
+@@ -518,10 +518,10 @@ class MjModel(metaclass=_MjModelMeta):
+         joint_id = self.joint_name2id(name)
+-        joint_type = self.jnt_type[joint_id]
++        joint_type = int(self.jnt_type[joint_id])
+         joint_addr = self.jnt_qposadr[joint_id]
+-        if joint_type == mujoco.mjtJoint.mjJNT_FREE:
++        if joint_type == int(mujoco.mjtJoint.mjJNT_FREE):
+             ndim = 7
+-        elif joint_type == mujoco.mjtJoint.mjJNT_BALL:
++        elif joint_type == int(mujoco.mjtJoint.mjJNT_BALL):
+             ndim = 4
+         else:
+-            assert joint_type in (mujoco.mjtJoint.mjJNT_HINGE, mujoco.mjtJoint.mjJNT_SLIDE)
++            assert joint_type in (int(mujoco.mjtJoint.mjJNT_HINGE), int(mujoco.mjtJoint.mjJNT_SLIDE))
+             ndim = 1
+@@ -543,10 +543,10 @@ class MjModel(metaclass=_MjModelMeta):
+         joint_id = self.joint_name2id(name)
+-        joint_type = self.jnt_type[joint_id]
++        joint_type = int(self.jnt_type[joint_id])
+         joint_addr = self.jnt_dofadr[joint_id]
+-        if joint_type == mujoco.mjtJoint.mjJNT_FREE:
++        if joint_type == int(mujoco.mjtJoint.mjJNT_FREE):
+             ndim = 6
+-        elif joint_type == mujoco.mjtJoint.mjJNT_BALL:
++        elif joint_type == int(mujoco.mjtJoint.mjJNT_BALL):
+             ndim = 3
+         else:
+-            assert joint_type in (mujoco.mjtJoint.mjJNT_HINGE, mujoco.mjtJoint.mjJNT_SLIDE)
++            assert joint_type in (int(mujoco.mjtJoint.mjJNT_HINGE), int(mujoco.mjtJoint.mjJNT_SLIDE))
+             ndim = 1

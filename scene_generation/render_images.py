@@ -149,8 +149,10 @@ def render_scene(
     render_args.resolution_x = config.width
     render_args.resolution_y = config.height
     render_args.resolution_percentage = 100
-    render_args.tile_x = config.render_tile_size
-    render_args.tile_y = config.render_tile_size
+    if hasattr(render_args, 'tile_x'):
+        render_args.tile_x = config.render_tile_size
+    if hasattr(render_args, 'tile_y'):
+        render_args.tile_y = config.render_tile_size
     if config.use_gpu:
         # Blender changed the API for enabling CUDA at some point
         if bpy.app.version < (2, 78, 0):
@@ -167,7 +169,11 @@ def render_scene(
                 cycles_prefs.compute_device_type = 'CUDA'
             bpy.context.preferences.addons["cycles"].preferences.get_devices()
 
-    if not (config.use_gpu and config.use_optix):
+    if (
+        not (config.use_gpu and config.use_optix)
+        and hasattr(bpy.data.worlds['World'], 'cycles')
+        and hasattr(bpy.data.worlds['World'].cycles, 'sample_as_light')
+    ):
         bpy.data.worlds['World'].cycles.sample_as_light = True
 
     # Some CYCLES-specific stuff

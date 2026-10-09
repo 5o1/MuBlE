@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 import robosuite.utils.transform_utils as T
-from robosuite.environments.manipulation.single_arm_env import SingleArmEnv
+from robosuite.environments.manipulation.manipulation_env import ManipulationEnv
 from .table_arena import TableArena
 from robosuite.models.base import MujocoModel
 from robosuite.models.grippers import GripperModel
@@ -13,11 +13,9 @@ from robosuite.models.tasks import ManipulationTask
 from robosuite.utils.observables import Observable, sensor
 from environment.objects import CoordinateVis, ShopVrbObject
 from robosuite.robots import ROBOT_CLASS_MAPPING
-from robosuite.controllers import controller_factory, load_controller_config
-from .controller import CustomOperationalSpaceController
 
 
-class TabletopEnv(SingleArmEnv):
+class TabletopEnv(ManipulationEnv):
     """
     This class corresponds to the pick place task for a single robot arm.
     Args:
@@ -121,8 +119,9 @@ class TabletopEnv(SingleArmEnv):
         mode='train',
         env_configuration="default",
         controller_configs=None,
+        base_types="default",
         gripper_types="default",
-        initialization_noise="default",
+        initialization_noise=None,
         table_full_size=(1.36, 0.8, 0.026),
         table_offset=(0, 0, 0.8),
         table_friction=(1, 0.005, 0.0001),
@@ -138,6 +137,7 @@ class TabletopEnv(SingleArmEnv):
         render_visual_mesh=True,
         render_gpu_device_id=-1,
         control_freq=20,
+        lite_physics=False,
         horizon=1000,
         ignore_done=False,
         hard_reset=True,
@@ -146,8 +146,9 @@ class TabletopEnv(SingleArmEnv):
         camera_widths=256,
         camera_depths=False,
         camera_segmentations=None,  # {None, instance, class, element}
-        renderer="mujoco",
+        renderer="mjviewer",
         renderer_config=None,
+        seed=None,
         bounding_boxes_from_scene=False,
         debug=False,
         blender_render=False,
@@ -156,7 +157,7 @@ class TabletopEnv(SingleArmEnv):
         output_render_path='./image',
         return_bboxes=False,
         list_obj_properties=False,
-        use_custom_controller=True
+        use_custom_controller=False
     ):
         self.use_custom_controller = use_custom_controller
         if use_custom_controller:
@@ -220,7 +221,7 @@ class TabletopEnv(SingleArmEnv):
             robots=robots,
             env_configuration=env_configuration,
             controller_configs=controller_configs,
-            mount_types=None,
+            base_types=base_types,
             gripper_types=gripper_types,
             initialization_noise=initialization_noise,
             use_camera_obs=use_camera_obs,
@@ -231,6 +232,7 @@ class TabletopEnv(SingleArmEnv):
             render_visual_mesh=render_visual_mesh,
             render_gpu_device_id=render_gpu_device_id,
             control_freq=control_freq,
+            lite_physics=lite_physics,
             horizon=horizon,
             ignore_done=ignore_done,
             hard_reset=hard_reset,
@@ -241,6 +243,7 @@ class TabletopEnv(SingleArmEnv):
             camera_segmentations=camera_segmentations,
             renderer=renderer,
             renderer_config=renderer_config,
+            seed=seed,
         )
 
     def reward(self, action=None):
@@ -308,7 +311,7 @@ class TabletopEnv(SingleArmEnv):
                 self.debug_objs.append(coord_sys)
         
 
-        self.robots[0].gripper.current_action = [-1.0]
+        self._primary_gripper().current_action = np.array([-1.0])
 
         # task includes arena, robot, and objects of interest
         self.model = ManipulationTask(
@@ -344,6 +347,18 @@ class TabletopEnv(SingleArmEnv):
             for do in self.debug_objs:
                 self.debug_obj_body_id[do.name] = self.sim.model.body_name2id(do.root_body)
 
+    def _primary_gripper(self):
+        """Return the single gripper across robosuite <=1.4 and 1.5 layouts."""
+
+        gripper = self.robots[0].gripper
+        if isinstance(gripper, dict):
+            if len(gripper) != 1:
+                raise RuntimeError(
+                    f"TabletopEnv requires exactly one gripper, got {tuple(gripper)}"
+                )
+            gripper = next(iter(gripper.values()))
+        return gripper
+
 
     def _setup_observables(self):
         observables = super()._setup_observables()
@@ -356,7 +371,7 @@ class TabletopEnv(SingleArmEnv):
         # print(gripper_actuators)
         @sensor(modality='gripper')
         def gripper_action(obs_cache):
-            return self.robots[0].gripper.current_action[0]
+            return self._primary_gripper().current_action[0]
         observables['gripper_action'] = Observable(
             name='gripper_action',
             sensor=gripper_action,
@@ -370,7 +385,7 @@ class TabletopEnv(SingleArmEnv):
             if self.grasped_obj is not None:
                 return True
             else:
-                return (self.robots[0].gripper.current_action[0] > 0.9)
+                return (self._primary_gripper().current_action[0] > 0.9)
         observables['gripper_closed'] = Observable(
             name='gripper_closed',
             sensor=gripper_closed,
@@ -567,6 +582,9 @@ class TabletopEnv(SingleArmEnv):
         Raises:
             AssertionError: [Invalid action dimension]
         """
+        if not self.use_custom_controller:
+            return super()._pre_action(action, policy_step)
+
         # Verify that the action is the correct dimension
         assert len(action) == self.action_dim, "environment got invalid action dimension -- expected {}, got {}".format(
             self.action_dim, len(action)
@@ -610,9 +628,9 @@ class TabletopEnv(SingleArmEnv):
         # 1 - closing
         # -1 - opening
         gripper_state = 0 
-        if action[6] > self.robots[0].gripper.current_action[0]:
+        if action[6] > self._primary_gripper().current_action[0]:
             gripper_state = 1
-        elif action[6] < self.robots[0].gripper.current_action[0] and action[6] < -0.99:
+        elif action[6] < self._primary_gripper().current_action[0] and action[6] < -0.99:
             gripper_state = -1
 
         # If gripper is closing
@@ -620,15 +638,15 @@ class TabletopEnv(SingleArmEnv):
             # Check if anything is grasped
             if self.grasped_obj is not None:
                 # Keep current closure
-                action[6] = self.robots[0].gripper.current_action[0]
+                action[6] = self._primary_gripper().current_action[0]
             else:
                 # Check if we 'start' grasping any object
                 for i, o in enumerate(self.objects):
-                    obj_grasped = self._check_grasp(self.robots[0].gripper, o)
+                    obj_grasped = self._check_grasp(self._primary_gripper(), o)
                     # If we found touching obj, save it, save relative pos and ori w.r.t. gripper
                     if obj_grasped:
                         self.grasped_obj = o
-                        action[6] = self.robots[0].gripper.current_action[0]
+                        action[6] = self._primary_gripper().current_action[0]
                         # print(o.name)
                         obj_world_pos = np.array(self.sim.data.body_xpos[self.obj_body_id[o.name]])
                         obj_world_ori = T.convert_quat(self.sim.data.body_xquat[self.obj_body_id[o.name]], to="xyzw")
@@ -897,6 +915,11 @@ class TabletopEnv(SingleArmEnv):
         return [hand_pos[0], hand_pos[1], hand_pos[2], hand_ori[0], hand_ori[1], hand_ori[2], -1]
 
     def _load_custom_controller(self):
+        raise RuntimeError(
+            "MuBlE's legacy custom OSC depends on the removed mujoco_py controller API. "
+            "Use robosuite 1.5's composite OSC controller while the custom controller "
+            "is being ported."
+        )
         cfg = self.controller_cfg
         self.controller_cfg["robot_name"] = self.robots[0].name
         self.controller_cfg["sim"] = self.sim
